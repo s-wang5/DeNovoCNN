@@ -27,6 +27,7 @@ from PIL import Image
 
 from denovonet.settings import OVERHANG, IMAGE_WIDTH, PLACEHOLDER_WIDTH, IMAGE_HEIGHT
 from denovonet.encoders import baseEncoder
+import random
 
 
 class SingleVariant():
@@ -104,10 +105,23 @@ class SingleVariant():
             Iterates over all the reads in the area of interest and
             encodes every read as 2 numpy arrays: 
             encoded nucleotides and corresponding qualities
+
+            Added by sw on 11/03/2023: 
+            (1) to get better representative for variants with more than 160x, 
+            randomly select reads insteading of only using top 160 reads;
+            (2) use the random seed (the total reads in given region) to make sure reproduction;
+            (3) instead of randomly picking up reads, using slices to make sure the selected reads 
+            are still in the right order.
         """
-        for idx, read in enumerate(self.bam_data.fetch(reference=self.chromosome, start=self.start, end=self.end)):
-            if idx >= IMAGE_HEIGHT:
-                break
+        reads = []
+        for read in self.bam_data.fetch(reference=self.chromosome, start=self.start, end=self.end):
+            reads.append(read)
+        
+        if len(reads)>IMAGE_HEIGHT:
+            idx = set(random.Random(len(reads)).sample(range(len(reads)), k=min(40, len(reads))))
+            reads = [x for i, x in enumerate(reads) if i in idx]
+            
+        for idx, read in enumerate(reads):
             self.pileup_encoded[idx, :], self.quality_encoded[idx, :] = (
                 self._get_read_encoding(read, False)
             )
