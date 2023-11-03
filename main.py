@@ -64,6 +64,9 @@ parser.add_argument('--not_convert_to_inner_format', dest='convert_to_inner_form
 parser.add_argument('--output_path', dest='output_path', default='output.txt', type=str,
                     help='Path to output file with DeNovoCNN predictions.')
 
+parser.add_argument('--n_jobs', dest='n_jobs', default=-1, type=int,
+                    help='Number of threads for the processing (default: -1, to use all avaiable threads)')
+
 args = parser.parse_args()
 
 # run DeNovoCNN training or predicting
@@ -90,7 +93,7 @@ if __name__ == "__main__":
             ref_genome=args.ref_genome,
             output_denovocnn_format=args.output_denovocnn_format,
             convert_to_inner_format=args.convert_to_inner_format,
-            n_jobs=-1
+            n_jobs=args.n_jobs
         )
 
     else:
